@@ -9,12 +9,14 @@ last_name = 'last_name'
 user_password = 'csF7MNZsjVrvn9Mx4WxN'
 full_name = username = f'{first_name} {last_name}'
 user_id = f'{full_name} {time.time()}'
-user_email = 'xalotiy556@ofacer.com'  # Replace with user's email or a random email from https://temp-mail.org/en/ for dev/testing
+user_email = 'luceto@forexzig.com'  # Replace with user's email or a random email from https://temp-mail.org/en/ for dev/testing
 
 # Leave the following variables unchanged
-alltrue_api_key = '2leJcrFlSPTwJCeHYNCveVocV6Z0tsva'  # This is an AllTrue API key given auditor, security analyst roles, and custom IBM training roles
-customer_id = '42072582-95f4-46ef-be06-bb7aa2cdcff8'  # Default customer ID of the IBM Demos Environment
-org_id = '9d59fd41-32e5-411d-923b-a5680855c6ae' # This corresponds to the "IBM GAIS Training" project in IBM Demos.
+auth0_id = ''  # To be populated after user creation
+alltrue_api_key = '2leJcrFlSPTwJCeHYNCveVocV6Z0tsva'  # API key given auditor, security analyst, and custom IBM training roles
+customer_id = '42072582-95f4-46ef-be06-bb7aa2cdcff8'  # IBM Demos default customer ID
+org_id = '9d59fd41-32e5-411d-923b-a5680855c6ae' # IBM GAIS Training
+project_id = '3b3cd953-85ec-4b00-9c22-3f72c925b36d' # IBMEnablementTest_Proj_1
 
 
 def get_jwt_token(api_key):
@@ -47,92 +49,46 @@ def make_api_request(endpoint, method='GET', data=None, params=None, files=None)
 # Creating user
 print('# Creating user...')
 endpoint = f'https://api.demos.alltrue-be.com/v1/admin/auth0-customer/{customer_id}/users'
+method = 'POST'
 data = {
     'user': {
+        'name': full_name,
         'user_id': user_id,
         'given_name': first_name,
         'family_name': last_name,
-        'name': full_name,
         'email': user_email,  # Temporary email addresses available at https://adguard.com/en/adguard-temp-mail/overview.html
         'password': user_password,
         'connection': 'Username-Password-Authentication',  # Do not change this please
   },
   'roles': [
       '5625e45c-8f5e-414e-ad8f-093864e58c2e',  # Limited User
-      'b6fde60f-a767-45b6-85d9-c94cccfd9ae8'   # Security Analyst
+      'b6fde60f-a767-45b6-85d9-c94cccfd9ae8',  # Security Analyst
+      '679e4f70-54b1-4936-a5ca-c341c65714ba'   # IBM_Training
   ]
 }
-
-method = 'POST'
-make_api_request(endpoint=endpoint, method=method, data=data)
-
-
-# After creating a new user account
-# Fetch all users to find the Auth0 ID needed for project creation
-print(f'# Getting all users...')
-endpoint = f'https://api.demos.alltrue-be.com/v1/admin/auth0-customer/{customer_id}/users'
-method = 'GET'
-data = {
-    'customer_id': customer_id,
-}
-for user in make_api_request(endpoint, method=method, data=data):
-    if user['email'] == user_email:
-        print(f'# Found user {user_email} in {customer_id}...\n')
-        owner_auth0_id = user['user_id']
-        using_backup_owner_auth0_id = False
-if using_backup_owner_auth0_id:
-    print(f'# {user_email} not found in {customer_id}. Proceeding with backup user...\n')
+response = make_api_request(endpoint=endpoint, method=method, data=data)
+if 'already exists' in str(response):
+    print('# User already exists')
+else:
+    auth0_id = response['user']['user_id']
 
 
-# Create project API
-print(f'# Creating AllTrue project {new_project_name}...')
-endpoint = f'https://api.demos.alltrue-be.com/v1/admin/projects'
-method = 'POST'
-data = {
-    'organization_id': org_id,
-    'project_name': new_project_name,
-    'owner_auth0_id': owner_auth0_id
-}
-new_project_id = make_api_request(endpoint=endpoint, method=method, data=data)['project_id']
-
-# ibm_api_key is required for the following two functions to work.
-# # Link IBM cloud account
-# print('# Linking IBM cloud account...')
-# endpoint = f'https://api.demos.alltrue-be.com/v1/admin/cloud-accounts/'
-# method = 'POST'
-# data = {
-#   'cloud_accounts': [
-#       {
-#           'cloud_provider': 'IBM',
-#           'ibm_credentials': json.dumps({
-#               'apikey': ibm_api_key,
-#               'project_id': ibm_cloud_account_identifier
-#           })
-#       }
-#   ]
-# }
-# make_api_request(endpoint=endpoint, method=method, data=data)  # Though response is None, project_id be listed under All Organizations > AI Inventory > Configuration > Cloud Accounts
-# print(f'# {ibm_cloud_account_identifier} should be listed under All Organizations > AI Inventory > Configuration > Cloud Accounts.')
-#
-#
-# # Move cloud account to correct project
-# print(f'# Assigning IBM project {ibm_cloud_account_identifier} to AllTrue project {new_project_name}...')
-# endpoint = f'https://api.demos.alltrue-be.com/v1/admin/cloud-accounts/projects'
-# method = 'PUT'
-# data = {
-#     'cloud_accounts_projects': [
-#         {
-#             'cloud_provider_account_id': ibm_cloud_account_identifier,
-#             'project_id': new_project_id
-#         }
-#     ]
-# }
-# make_api_request(endpoint=endpoint, method=method, data=data)  # IBM Cloud project should appear in AllTrue Project > AI Inventory > Configuration > Cloud Accounts
-# print(f'# {ibm_cloud_account_identifier} should be listed under {new_project_name} > AI Inventory > Configuration > Cloud Accounts.\n')
+if auth0_id:
+    print(f'# Assigning user {auth0_id} to project {project_id}')
+    endpoint = f'https://api.demos.alltrue-be.com/v1/admin/customers/{customer_id}/users/{auth0_id}/projects'
+    method = 'POST'
+    data = {
+        'projects': [
+            {
+                'project_id': project_id
+            }
+        ]
+    }
+    make_api_request(endpoint=endpoint, method=method, data=data)
 
 
 # Adding Hugging Face Model
-print(f'# Adding Hugging face Models to {new_project_name}...')
+print(f'# Adding Hugging face Models to project {project_id}...')
 endpoint = f'https://api.demos.alltrue-be.com/v1/inventory/customer/{customer_id}/resources'
 method = 'POST'
 data = {'resources': []}
@@ -156,14 +112,14 @@ for resource_type, technology_type, hugging_face_model_id in huggingface_models:
             'storage_source': 'hugging-face-hub',
         },
         'project_ids': [
-            new_project_id
+            project_id
         ],
     })
 make_api_request(endpoint=endpoint, method=method, data=data)
 
 
 # Adding Python Library
-print(f'# Adding Python Libraries to {new_project_name}...')
+print(f'# Adding Python Libraries to project {project_id}...')
 endpoint = f'https://api.demos.alltrue-be.com/v1/inventory/customer/{customer_id}/resources'
 method = 'POST'
 data = {'resources': []}
@@ -202,20 +158,20 @@ for package, version in python_packages:
             package
         ],
         'project_ids': [
-            new_project_id
+            project_id
         ],
     })
 make_api_request(endpoint=endpoint, method=method, data=data)
 
 
 # Adding Dependency File
-print(f'# Adding Dependency File to {new_project_name}...')
-dependency_file_identifier = f'{new_project_name}_requirements.txt'
+print(f'# Adding Dependency File...')
+dependency_file_identifier = f'{full_name}_requirements.txt'
 file_path = 'sample-requirements.txt'
 endpoint = f'https://api.demos.alltrue-be.com/v1/inventory/customer/{customer_id}/resources/dependency-file'
 method = 'POST'
 params = {
-    'project_id': new_project_id,
+    'project_id': project_id,
     'dependency_file_identifier': dependency_file_identifier,
     'language_and_file': 'Python: requirements.txt',
     'display_name': dependency_file_identifier
@@ -226,128 +182,14 @@ files = {
 make_api_request(endpoint=endpoint, method=method, params=params, files=files) # Check for dependency file at AI Inventory > Configuration > Dependency File
 
 
-# # The following Watsonx resources are disabled and therefore cannot be added to AllTrue.
-# # Adding IBM Watsonx Assistant
-# print(f'# Adding {watsonx_assistant_endpoint_identifier} to {new_project_name}...')
-# endpoint = f'https://api.demos.alltrue-be.com/v1/inventory/customer/{customer_id}/resources'
-# method = 'POST'
-# data = {
-#     'resources': [
-#         {
-#             'display_name': None,
-#             'cloud_provider_account_id': None,
-#             'resource_type': 'IBMWatsonxAssistantEndpoint',
-#             'resource_data': {
-#                 'type': 'IBMWatsonxAssistantEndpoint',
-#                 'endpoint_identifier': watsonx_assistant_endpoint_identifier,
-#                 'api_key': ibm_api_key,
-#                 'pentest_connection_details': {
-#                     'assistant_id': '9be6f9d0-6a5c-46c2-b2d3-3d7dfde6e783',
-#                     'instance_id': '17b285ef-d647-4062-b216-7efab114d43d',
-#                     'pentest_api_key': ibm_api_key,
-#                     'service_url': 'https://api.us-south.assistant.watson.cloud.ibm.com/',
-#                     'initial_messages': ['Tell me a joke please.']
-#                 }
-#             },
-#             'technology_types': [
-#                 'ibmwatsonx-assistant'
-#             ],
-#             'project_ids': [
-#                 new_project_id
-#             ],
-#             'reviewed': None
-#         }
-#     ],
-#     'cloud_provider_account_id': None,
-#     'region': None
-# }
-# make_api_request(endpoint=endpoint, method=method, data=data)
-#
-#
-# # Adding IBM Watsonx Foundation Model
-# print(f'# Adding {watsonx_foundation_model_endpoint_identifier} to {new_project_name}...')
-# endpoint = f'https://api.demos.alltrue-be.com/v1/inventory/customer/{customer_id}/resources'
-# method = 'POST'
-# data = {
-#     'resources': [
-#         {
-#             'display_name': None,
-#             'cloud_provider_account_id': None,
-#             'resource_type': 'IBMWatsonxEndpoint',
-#             'resource_data': {
-#                 'type': 'ibm',
-#                 'endpoint_identifier': watsonx_foundation_model_endpoint_identifier,
-#                 'api_key': ibm_api_key,
-#                 'pentest_connection_details': {
-#                     'project_id': '09b2dd6b-c08d-4082-bf28-a7b24019414c',
-#                     'pentest_api_key': ibm_api_key
-#                 }
-#             },
-#             'technology_types': [
-#                 'ibmwatsonx-api-key'
-#             ],
-#             'project_ids': [
-#                 new_project_id
-#             ],
-#             'reviewed': None
-#         }
-#     ],
-#     'cloud_provider_account_id': None,
-#     'region': None
-# }
-# make_api_request(endpoint=endpoint, method=method, data=data)
-
-
-# Adding IBM WatsonX AI Service
-print(f'# Adding {watsonx_ai_service_endpoint_identifier} to {new_project_name}...')
-endpoint = f'https://api.demos.alltrue-be.com/v1/inventory/customer/{customer_id}/resources'
-method = 'POST'
-data = {
-    'resources': [
-        {
-            'display_name': None,
-            'cloud_provider_account_id': None,
-            'resource_type': 'IBMWatsonxDeployedAIServiceEndpoint',
-            'resource_data': {
-                'type': 'IBMWatsonxDeployedAIServiceEndpoint',
-                'endpoint_identifier': watsonx_ai_service_endpoint_identifier,
-                'api_key': ibm_api_key,
-                'pentest_connection_details': {
-                    'service_url': 'https://us-south.ml.cloud.ibm.com/',
-                    'deployment_id': '674e8f98-6e37-4782-8c40-7cba4790e36a'
-                }
-            },
-            'technology_types': [
-                'ibmwatsonx-api-key'
-            ],
-            'project_ids': [
-                new_project_id
-            ],
-            'reviewed': None
-        }
-    ],
-    'cloud_provider_account_id': None,
-    'region': None
-}
-make_api_request(endpoint=endpoint, method=method, data=data)
-
-
 # Delete User
 # Only required once training is complete or expired.
 # Can be triggered immediately after training or scheduled to run periodically in the background.
-if not using_backup_owner_auth0_id:
-    while True:
-        answer = input(f'# Are you ready to delete the {user_email}? (y/n): ').strip().lower()
-        if answer == 'y':
-            print(f'# Deleting {user_email}...')
-            endpoint = f'https://api.demos.alltrue-be.com/v1/admin/auth0-customer/{customer_id}/users/{owner_auth0_id}'
-            method = 'DELETE'
-            data = {
-                'customer_id': customer_id,
-                'owner_auth0_id': owner_auth0_id
-            }
-            make_api_request(endpoint=endpoint, method=method, data=data)
-            break
-
-        print('# Waiting 1 minute before asking again...\n')
-        time.sleep(60)
+# print(f'# Deleting {user_email}...')
+# endpoint = f'https://api.demos.alltrue-be.com/v1/admin/auth0-customer/{customer_id}/users/{auth0_id}'
+# method = 'DELETE'
+# data = {
+#     'customer_id': customer_id,
+#     'owner_auth0_id': auth0_id
+# }
+# make_api_request(endpoint=endpoint, method=method, data=data)
