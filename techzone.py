@@ -9,14 +9,13 @@ last_name = 'last_name'
 user_password = 'csF7MNZsjVrvn9Mx4WxN'
 full_name = username = f'{first_name} {last_name}'
 user_id = f'{full_name} {time.time()}'
-user_email = 'luceto@forexzig.com'  # Replace with user's email or a random email from https://temp-mail.org/en/ for dev/testing
+user_email = 'nelevyle@fxzig.com'  # Replace with user's email or a random email from https://temp-mail.org/en/ for dev/testing
 
 # Leave the following variables unchanged
 auth0_id = ''  # To be populated after user creation
 alltrue_api_key = '2leJcrFlSPTwJCeHYNCveVocV6Z0tsva'  # API key given auditor, security analyst, and custom IBM training roles
 customer_id = '42072582-95f4-46ef-be06-bb7aa2cdcff8'  # IBM Demos default customer ID
-org_id = '9d59fd41-32e5-411d-923b-a5680855c6ae' # IBM GAIS Training
-project_id = '3b3cd953-85ec-4b00-9c22-3f72c925b36d' # IBMEnablementTest_Proj_1
+project_id = 'b0fd57c4-6941-4583-a805-dbc8a2502d59' # z_IBM_Enablement > IBM_Enablement
 
 
 def get_jwt_token(api_key):
