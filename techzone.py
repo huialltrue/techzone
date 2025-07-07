@@ -4,12 +4,12 @@ import requests
 
 
 # Change the following variables to suit the user
-first_name = 'first_name'
-last_name = 'last_name'
-user_password = 'csF7MNZsjVrvn9Mx4WxN'
+first_name = 'first_name'  # Please change me
+last_name = 'last_name'  # Please change me
+user_password = 'csF7MNZsjVrvn9Mx4WxN'  # Please change me
 full_name = username = f'{first_name} {last_name}'
 user_id = f'{full_name} {time.time()}'
-user_email = 'nelevyle@fxzig.com'  # Replace with user's email or a random email from https://temp-mail.org/en/ for dev/testing
+user_email = 'nelevyle@fxzig.com'  # Replace with user's email or a random email from https://tempmailo.com/ for dev/testing
 
 # Leave the following variables unchanged
 auth0_id = ''  # To be populated after user creation
