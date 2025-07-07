@@ -181,15 +181,26 @@ files = {
 make_api_request(endpoint=endpoint, method=method, params=params, files=files) # Check for dependency file at AI Inventory > Configuration > Dependency File
 
 
-# Delete User
-# Only required once training is complete or expired.
-# Can be triggered immediately after training or scheduled to run periodically in the background.
-if auth0_id:
-    print(f'# Deleting user {auth0_id}...')
-    endpoint = f'https://api.demos.alltrue-be.com/v1/admin/auth0-customer/{customer_id}/users/{auth0_id}'
-    method = 'DELETE'
+# Fetch all users to find the Auth0 ID needed for user deletion
+if input('Delete newly created user? (y/n): ') == 'y':
+    print(f'# Getting all users...')
+    endpoint = f'https://api.demos.alltrue-be.com/v1/admin/auth0-customer/{customer_id}/users'
+    method = 'GET'
     data = {
         'customer_id': customer_id,
-        'owner_auth0_id': auth0_id
     }
-    make_api_request(endpoint=endpoint, method=method, data=data)
+    for user in make_api_request(endpoint, method=method, data=data):
+        if user['email'] == user_email:
+            print(f'# Found user {user_email} in {customer_id}...\n')
+            auth0_id = user['user_id']
+            # Delete User
+            # Only required once training is complete or expired.
+            # Can be triggered immediately after training or scheduled to run periodically in the background.
+            print(f'# Deleting user {auth0_id}...')
+            endpoint = f'https://api.demos.alltrue-be.com/v1/admin/auth0-customer/{customer_id}/users/{auth0_id}'
+            method = 'DELETE'
+            data = {
+                'customer_id': customer_id,
+                'owner_auth0_id': auth0_id
+            }
+            make_api_request(endpoint=endpoint, method=method, data=data)
