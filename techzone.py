@@ -9,7 +9,7 @@ last_name = 'last_name'  # Please change me
 user_password = 'csF7MNZsjVrvn9Mx4WxN'  # Please change me
 full_name = username = f'{first_name} {last_name}'
 user_id = f'{full_name} {time.time()}'
-user_email = 'nelevyle@fxzig.com'  # Replace with user's email or a random email from https://tempmailo.com/ for dev/testing
+user_email = 'syfipy@forexzig.com'  # Replace with user's email or a random email from https://tempmailo.com/ for dev/testing
 
 # Leave the following variables unchanged please
 auth0_id = 'auth0|68235f5459f6c9965c15aad1'  # To be populated after user creation
