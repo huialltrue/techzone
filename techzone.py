@@ -11,7 +11,7 @@ full_name = username = f'{first_name} {last_name}'
 user_id = f'{full_name} {time.time()}'
 user_email = 'nelevyle@fxzig.com'  # Replace with user's email or a random email from https://tempmailo.com/ for dev/testing
 
-# Leave the following variables unchanged
+# Leave the following variables unchanged please
 auth0_id = ''  # To be populated after user creation
 alltrue_api_key = '2leJcrFlSPTwJCeHYNCveVocV6Z0tsva'  # API key given auditor, security analyst, and custom IBM training roles
 customer_id = '42072582-95f4-46ef-be06-bb7aa2cdcff8'  # IBM Demos default customer ID
