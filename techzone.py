@@ -12,7 +12,7 @@ user_id = f'{full_name} {time.time()}'
 user_email = 'nelevyle@fxzig.com'  # Replace with user's email or a random email from https://tempmailo.com/ for dev/testing
 
 # Leave the following variables unchanged please
-auth0_id = ''  # To be populated after user creation
+auth0_id = 'auth0|68235f5459f6c9965c15aad1'  # To be populated after user creation
 alltrue_api_key = '2leJcrFlSPTwJCeHYNCveVocV6Z0tsva'  # API key given auditor, security analyst, and custom IBM training roles
 customer_id = '42072582-95f4-46ef-be06-bb7aa2cdcff8'  # IBM Demos default customer ID
 project_id = 'b0fd57c4-6941-4583-a805-dbc8a2502d59' # z_IBM_Enablement > IBM_Enablement
@@ -184,11 +184,12 @@ make_api_request(endpoint=endpoint, method=method, params=params, files=files) #
 # Delete User
 # Only required once training is complete or expired.
 # Can be triggered immediately after training or scheduled to run periodically in the background.
-# print(f'# Deleting {user_email}...')
-# endpoint = f'https://api.demos.alltrue-be.com/v1/admin/auth0-customer/{customer_id}/users/{auth0_id}'
-# method = 'DELETE'
-# data = {
-#     'customer_id': customer_id,
-#     'owner_auth0_id': auth0_id
-# }
-# make_api_request(endpoint=endpoint, method=method, data=data)
+if auth0_id:
+    print(f'# Deleting user {auth0_id}...')
+    endpoint = f'https://api.demos.alltrue-be.com/v1/admin/auth0-customer/{customer_id}/users/{auth0_id}'
+    method = 'DELETE'
+    data = {
+        'customer_id': customer_id,
+        'owner_auth0_id': auth0_id
+    }
+    make_api_request(endpoint=endpoint, method=method, data=data)
